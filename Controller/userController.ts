@@ -33,18 +33,54 @@ export const signupC = async(req: Request, res: Response) => {
             console.log(bcryptPassword)
             const addUser = await pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""])
         
-            const jwtToken = jwt.sign({ username, password }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
+            const jwtToken = jwt.sign({ username, email }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
             res.status(200).send({userToken:jwtToken, status:true})
         }   
        
     } catch (error:any) {
         console.log(error.message)
-        res.send(500).send({ message: "An error occured", status: false })
+        res.status(500).send({ message: "An error occured", status: false })
     }
     
     
 }
 
-export const signinC = (req: Request, res: Response) => {
+export const signinC = async (req: Request, res: Response) => {
+    try{
+        const { emailUsername, password, switchChange } = req.body
+        let searchName = ""
+        
+        if (switchChange) {
+            searchName = "email"
+           
+        } else {
+            searchName ="username"
+        }
+        const searchQuery = await pool.query(`SELECT username, email, password FROM user_info WHERE ${searchName} = $1`, [emailUsername])
+        const ifValid = () => {
+            const jwtToken = jwt.sign({ emailUsername }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
+            res.status(200).send({userToken:jwtToken, status:true})
+            
+        }
+        const ifInvalid = (message:string) => {
+             res.status(404).send({message:message, status:false})   
+        }
+        if (searchQuery.rows.length > 0) {
+            const confirmPass = await bcryptjs.compare(password, searchQuery.rows[0].password)
+            switch (confirmPass) {
+                case true: {
+                    return ifValid()
+                }; case false: {
+                    return ifInvalid("Invalid Password")
+                }
+            }
+        } else {
+          ifInvalid("Invalid Login Crendentails")
+        }
+        
+    } catch (error:any) {
+        res.status(500).send({message:"an error occured", status:false})
+    }
+
     
 }

@@ -46,16 +46,53 @@ const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             const bcryptPassword = yield bcryptjs_1.default.hash(password, 10);
             console.log(bcryptPassword);
             const addUser = yield db_1.pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""]);
-            const jwtToken = jsonwebtoken_1.default.sign({ username, password }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" });
+            const jwtToken = jsonwebtoken_1.default.sign({ username, email }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" });
             res.status(200).send({ userToken: jwtToken, status: true });
         }
     }
     catch (error) {
         console.log(error.message);
-        // res.sendStatus(500).send({ message: "An error occured", status: false })
+        res.status(500).send({ message: "An error occured", status: false });
     }
 });
 exports.signupC = signupC;
-const signinC = (req, res) => {
-};
+const signinC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { emailUsername, password, switchChange } = req.body;
+        let searchName = "";
+        if (switchChange) {
+            searchName = "email";
+        }
+        else {
+            searchName = "username";
+        }
+        const searchQuery = yield db_1.pool.query(`SELECT username, email, password FROM user_info WHERE ${searchName} = $1`, [emailUsername]);
+        const ifValid = () => {
+            const jwtToken = jsonwebtoken_1.default.sign({ emailUsername }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" });
+            res.status(200).send({ userToken: jwtToken, status: true });
+        };
+        const ifInvalid = (message) => {
+            res.status(404).send({ message: message, status: false });
+        };
+        if (searchQuery.rows.length > 0) {
+            const confirmPass = yield bcryptjs_1.default.compare(password, searchQuery.rows[0].password);
+            switch (confirmPass) {
+                case true:
+                    {
+                        return ifValid();
+                    }
+                    ;
+                case false: {
+                    return ifInvalid("Invalid Password");
+                }
+            }
+        }
+        else {
+            ifInvalid("Invalid Login Crendentails");
+        }
+    }
+    catch (error) {
+        res.status(500).send({ message: "an error occured", status: false });
+    }
+});
 exports.signinC = signinC;
