@@ -20,20 +20,20 @@ export const signupC = async(req: Request, res: Response) => {
             } else if (check.rows[0].username === username && check.rows[0].email !== email) {
                 // check if only username has been used before
                 console.log("yes")
-               erroMessage = "Username already in use"
+                erroMessage = "Username already in use"
             } else if (check.rows[0].username !== username && check.rows[0].email === email) {
                 console.log("no")
                 // checks if only email has been used before
-              erroMessage = "Email already in use"
+                erroMessage = "Email already in use"
             }
-              res.status(404).send({ message: erroMessage, status: false })
+            res.status(404).send({ message: erroMessage, status: false })
         } else {
             // if none has been used before we bcypt the password, save details and send a token
             const bcryptPassword = await bcryptjs.hash(password, 10)
             console.log(bcryptPassword)
             const addUser = await pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""])
-        
-            const jwtToken = jwt.sign({ username, email }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
+            // number zero means we ahve both available
+            const jwtToken = jwt.sign({ emailUsername:` ${ username } ${ email }`, number: 0 }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
             res.status(200).send({userToken:jwtToken, status:true})
         }   
        
@@ -49,16 +49,19 @@ export const signinC = async (req: Request, res: Response) => {
     try{
         const { emailUsername, password, switchChange } = req.body
         let searchName = ""
-        
+        let number = -1
         if (switchChange) {
             searchName = "email"
+            number = 1
            
         } else {
-            searchName ="username"
+            searchName = "username"
+            number = 2
         }
         const searchQuery = await pool.query(`SELECT username, email, password FROM user_info WHERE ${searchName} = $1`, [emailUsername])
         const ifValid = () => {
-            const jwtToken = jwt.sign({ emailUsername }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
+            // number 1 means we only have email available, 2 means we only have username
+            const jwtToken = jwt.sign({ emailUsername:emailUsername, number:  number}, `${process.env.JWTTOKEN}`, { expiresIn: "1d" })
             res.status(200).send({userToken:jwtToken, status:true})
             
         }
@@ -83,4 +86,48 @@ export const signinC = async (req: Request, res: Response) => {
     }
 
     
+}
+
+interface jwtPayload {
+    emailUsername: string,
+    number:number
+}
+export const userAuthorization = async (req:Request, res:Response)=>{
+    try {
+        const userToken = req.headers.authorization?.split(" ")
+        // console.log(user[1])
+        if (userToken) {
+            const verifyToken = jwt.verify(`${userToken[1]}`, `${process.env.JWTTOKEN}`) as jwtPayload
+           
+            let searchRoute = ""
+            let searchId = ""
+            // we check based on the number what we have
+            // if it's 0 we have both email and username wrapped together as a string
+            // the rest we have based on the prefrence of the user
+            
+            if (verifyToken.number === 0) {
+                searchId = verifyToken.emailUsername.split(" ")[2]
+                searchRoute = "email"
+            } else if (verifyToken.number === 1) {
+                searchId = verifyToken.emailUsername
+                searchRoute = "email"
+                
+            } else if (verifyToken.number === 2) {
+                 searchId = verifyToken.emailUsername
+                searchRoute = "username"
+            }
+
+            const userDetails = await pool.query(`SELECT username, email, img_url FROM user_info WHERE ${searchRoute} = $1`, [searchId])
+     
+            res.status(200).send({userDetails:userDetails.rows[0], status:true})
+            // const { JwtPayload } = verifyToken;
+
+        }
+
+    
+ } catch (error:any) {
+        console.log(error.message)
+         res.status(404).send({message:"Authentication failed", status:false})
+ }
+
 }
