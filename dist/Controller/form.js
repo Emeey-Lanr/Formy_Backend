@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addForm = void 0;
+exports.deleteForm = exports.getFormLink = exports.addForm = void 0;
 const form_validator_1 = require("../Validator/form.validator");
 const response_1 = require("../Response/response");
 const db_1 = require("../db");
@@ -26,7 +26,7 @@ const addForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             console.log(link);
             const formQueryDetails = [userId, form_title, form_description, JSON.stringify(form_details), link, form_time, form_date];
             let addForm = yield db_1.pool.query("INSERT INTO form(userId,form_title, form_description, form_details, form_link, form_time, form_date) VALUES($1,$2,$3,$4,$5,$6,$7)", formQueryDetails);
-            (0, response_1.sucessResponse)(res, 202, true, "form created succesfully", addForm.rows);
+            (0, response_1.sucessResponse)(res, 200, true, "form created succesfully", addForm.rows);
         }
     }
     catch (error) {
@@ -34,3 +34,23 @@ const addForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.addForm = addForm;
+const getFormLink = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const details = yield (0, form_validator_1.getformValidator)(req);
+        (0, response_1.sucessResponse)(res, 200, true, "seen succesfully", details);
+    }
+    catch (error) {
+        (0, response_1.errorResponse)(res, 400, false, "Authentication failed");
+    }
+});
+exports.getFormLink = getFormLink;
+const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const deleteFormQuery = yield db_1.pool.query("DELETE FROM form WHERE id = $1", [req.body.id]);
+        (0, response_1.sucessResponse)(res, 200, true, "deleted succesfully", []);
+    }
+    catch (error) {
+        (0, response_1.errorResponse)(res, 404, false, error.message);
+    }
+});
+exports.deleteForm = deleteForm;

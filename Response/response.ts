@@ -9,7 +9,7 @@ export const errorResponse = (res:Response, statusCode:number, sucess:boolean, m
 }
 
 
-export const sucessResponse = (res:Response, statusCode:number, sucess:boolean, message:string, data:any ) => {
+export const sucessResponse = (res:Response, statusCode:number, sucess:boolean, message:string, data?:any ) => {
     res.status(statusCode).json({
         sucess: sucess,
         message: message,

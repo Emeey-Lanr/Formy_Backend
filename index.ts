@@ -1,7 +1,6 @@
 import express, { Express, Request, Response } from "express"
 import dotenv from "dotenv"
-import { formRoute } from "./Routes/formRoute"
-import { userRoute } from "./Routes/userRoute"
+import { routes } from "./Routes/routes"
 
 import cors from "cors"
 
@@ -17,9 +16,9 @@ const app:Express = express()
 app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 app.use(express.json())
+routes(app)
 const PORT = process.env.PORT
-app.use("/user", userRoute)
-app.use("/form", formRoute)
+
 
 
 

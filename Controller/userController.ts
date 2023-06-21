@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import { pool } from "../db"
 import bcryptjs from "bcryptjs"
 import jwt from "jsonwebtoken"
-
+import {jwtPayload} from "../Interface/jwt"
 
 export const signupC = async(req: Request, res: Response) => {
     console.log(req.body)
@@ -88,10 +88,6 @@ export const signinC = async (req: Request, res: Response) => {
     
 }
 
-interface jwtPayload {
-    emailUsername: string,
-    number:number
-}
 export const userAuthorization = async (req:Request, res:Response)=>{
     try {
         const userToken = req.headers.authorization?.split(" ")
