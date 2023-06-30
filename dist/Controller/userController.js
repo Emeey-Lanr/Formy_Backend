@@ -16,6 +16,9 @@ exports.userAuthorization = exports.signinC = exports.signupC = void 0;
 const db_1 = require("../db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const user_1 = require("../Validator/user");
+const response_1 = require("../Response/response");
+const user_2 = require("../Service/user");
 const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(req.body);
     const { username, email, password, } = req.body;
@@ -102,37 +105,26 @@ const signinC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.signinC = signinC;
 const userAuthorization = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
-        const userToken = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ");
-        // console.log(user[1])
-        if (userToken) {
-            const verifyToken = jsonwebtoken_1.default.verify(`${userToken[1]}`, `${process.env.JWTTOKEN}`);
-            let searchRoute = "";
-            let searchId = "";
-            // we check based on the number what we have
-            // if it's 0 we have both email and username wrapped together as a string
-            // the rest we have based on the prefrence of the user
-            if (verifyToken.number === 0) {
-                searchId = verifyToken.emailUsername.split(" ")[2];
-                searchRoute = "email";
-            }
-            else if (verifyToken.number === 1) {
-                searchId = verifyToken.emailUsername;
-                searchRoute = "email";
-            }
-            else if (verifyToken.number === 2) {
-                searchId = verifyToken.emailUsername;
-                searchRoute = "username";
-            }
-            const userDetails = yield db_1.pool.query(`SELECT username, email, img_url FROM user_info WHERE ${searchRoute} = $1`, [searchId]);
-            res.status(200).send({ userDetails: userDetails.rows[0], status: true });
-            // const { JwtPayload } = verifyToken;
+        const userTokenValidation = yield user_1.UserValidator.validateToken(req);
+        if (userTokenValidation instanceof Error) {
+            return (0, response_1.errorResponse)(res, 404, false, "Authetication failed");
         }
+        const dashDetails = yield user_2.UserService.getDashDetails(`${userTokenValidation.email}`);
+        if (dashDetails instanceof Error) {
+            return (0, response_1.errorResponse)(res, 404, false, "Authetication failed");
+        }
+        return (0, response_1.sucessResponse)(res, 201, true, "verified succefully", {
+            userDetails: userTokenValidation,
+            dashboardDetails: {
+                lastestForms: dashDetails.lastestForms,
+                lastestResponses: dashDetails.lastestResponses,
+                topPerformingForms: []
+            }
+        });
     }
     catch (error) {
-        console.log(error.message);
-        res.status(404).send({ message: "Authentication failed", status: false });
+        return (0, response_1.errorResponse)(res, 404, false, error.message);
     }
 });
 exports.userAuthorization = userAuthorization;

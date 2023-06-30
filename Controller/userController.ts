@@ -2,7 +2,10 @@ import { Request, Response } from "express"
 import { pool } from "../db"
 import bcryptjs from "bcryptjs"
 import jwt from "jsonwebtoken"
-import {jwtPayload} from "../Interface/jwt"
+import { jwtPayload } from "../Interface/jwt"
+import { UserValidator } from "../Validator/user"
+import { errorResponse, sucessResponse } from "../Response/response"
+import { UserService } from "../Service/user"
 
 export const signupC = async(req: Request, res: Response) => {
     console.log(req.body)
@@ -90,40 +93,28 @@ export const signinC = async (req: Request, res: Response) => {
 
 export const userAuthorization = async (req:Request, res:Response)=>{
     try {
-        const userToken = req.headers.authorization?.split(" ")
-        // console.log(user[1])
-        if (userToken) {
-            const verifyToken = jwt.verify(`${userToken[1]}`, `${process.env.JWTTOKEN}`) as jwtPayload
-           
-            let searchRoute = ""
-            let searchId = ""
-            // we check based on the number what we have
-            // if it's 0 we have both email and username wrapped together as a string
-            // the rest we have based on the prefrence of the user
-            
-            if (verifyToken.number === 0) {
-                searchId = verifyToken.emailUsername.split(" ")[2]
-                searchRoute = "email"
-            } else if (verifyToken.number === 1) {
-                searchId = verifyToken.emailUsername
-                searchRoute = "email"
-                
-            } else if (verifyToken.number === 2) {
-                 searchId = verifyToken.emailUsername
-                searchRoute = "username"
-            }
-
-            const userDetails = await pool.query(`SELECT username, email, img_url FROM user_info WHERE ${searchRoute} = $1`, [searchId])
-     
-            res.status(200).send({userDetails:userDetails.rows[0], status:true})
-            // const { JwtPayload } = verifyToken;
-
+        const userTokenValidation = await UserValidator.validateToken(req)
+        if (userTokenValidation instanceof Error) {
+            return errorResponse(res, 404, false, "Authetication failed")
+        }
+        const dashDetails = await UserService.getDashDetails(`${userTokenValidation.email}`)
+        if (dashDetails instanceof Error) {
+            return errorResponse(res, 404, false, "Authetication failed");
         }
 
-    
- } catch (error:any) {
-        console.log(error.message)
-         res.status(404).send({message:"Authentication failed", status:false})
- }
+        return sucessResponse(res, 201, true, "verified succefully", {
+            userDetails: userTokenValidation,
+            dashboardDetails: {
+                lastestForms: dashDetails.lastestForms,
+                lastestResponses: dashDetails.lastestResponses,
+                topPerformingForms:dashDetails.topThree
+            }
+        })
+     
+       
+    } catch (error: any) {
+   
+         return errorResponse(res, 404, false, error.message)
+    }
 
 }
