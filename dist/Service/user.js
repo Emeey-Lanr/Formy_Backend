@@ -12,6 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const db_1 = require("../db");
 const user_1 = require("../Validator/user");
+const cloudinary_1 = require("cloudinary");
+cloudinary_1.v2.config({
+    cloud_name: `${process.env.CLOUDINARY_NAME}`,
+    api_key: `${process.env.CLOUDINARY_API_KEY}`,
+    api_secret: `${process.env.CLOUDINARY_API_SECRET}`,
+});
 class UserService {
     static getDashDetails(userEmail) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -21,8 +27,19 @@ class UserService {
                 const lastestForms = allForm.rows.filter((_, id) => id > allForm.rows.length - 11).reverse();
                 const lastestResponses = allFormResponse.rows.filter((_, id) => id > allFormResponse.rows.length - 11).reverse();
                 const topThree = yield user_1.UserValidator.ValidateTopThreeRanks(allFormResponse.rows);
-                console.log(topThree, "here is top three");
-                return { lastestForms, lastestResponses };
+                return { lastestForms, lastestResponses, topThree };
+            }
+            catch (error) {
+                return new Error(error.message);
+            }
+        });
+    }
+    static uploadProfileImgae(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, img } = payload;
+            try {
+                const uploadImg = yield cloudinary_1.v2.uploader.upload(img, { public_id: `${email}_formy` });
+                const updateUser = yield db_1.pool.query("UPDATE user_info SET img_url = $1  WHERE email = $2 ", [`${uploadImg.secure_url}`, `${email}`]);
             }
             catch (error) {
                 return new Error(error.message);

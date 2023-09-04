@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userAuthorization = exports.signinC = exports.signupC = void 0;
+exports.changeUserPassword = exports.uploadUserProfileImg = exports.userAuthorization = exports.signinC = exports.signupC = void 0;
 const db_1 = require("../db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -119,7 +119,7 @@ const userAuthorization = (req, res) => __awaiter(void 0, void 0, void 0, functi
             dashboardDetails: {
                 lastestForms: dashDetails.lastestForms,
                 lastestResponses: dashDetails.lastestResponses,
-                topPerformingForms: []
+                topPerformingForms: dashDetails.topThree
             }
         });
     }
@@ -128,3 +128,29 @@ const userAuthorization = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.userAuthorization = userAuthorization;
+const uploadUserProfileImg = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const upload = yield user_2.UserService.uploadProfileImgae(req.body);
+        if (upload instanceof Error) {
+            return (0, response_1.errorResponse)(res, 500, false, "An error occured");
+        }
+        return (0, response_1.sucessResponse)(res, 201, true, "Img profile uploaded succesfully");
+    }
+    catch (error) {
+        return (0, response_1.errorResponse)(res, 500, false, "internal server error");
+    }
+});
+exports.uploadUserProfileImg = uploadUserProfileImg;
+const changeUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const validatePassword = yield user_1.UserValidator.changePassword(`${req.body.email}`, `${req.body.oldPassword}`, `${req.body.newPassword}`);
+        if (validatePassword instanceof Error) {
+            return (0, response_1.errorResponse)(res, 404, false, validatePassword.message);
+        }
+        return (0, response_1.sucessResponse)(res, 201, true, "password updated succesfully");
+    }
+    catch (error) {
+        return (0, response_1.errorResponse)(res, 500, false, "internal server error");
+    }
+});
+exports.changeUserPassword = changeUserPassword;

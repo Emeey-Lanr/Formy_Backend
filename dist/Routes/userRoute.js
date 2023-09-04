@@ -10,3 +10,5 @@ const userController_1 = require("../Controller/userController");
 exports.userRoute.post("/signup", userController_1.signupC);
 exports.userRoute.post("/signin", userController_1.signinC);
 exports.userRoute.get("/authorizeuser", userController_1.userAuthorization);
+exports.userRoute.put("/uploadProfileImg", userController_1.uploadUserProfileImg);
+exports.userRoute.put("/changepassword", userController_1.changeUserPassword);

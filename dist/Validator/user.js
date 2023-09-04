@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserValidator = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("../db");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class UserValidator {
     static validateToken(req) {
         var _a;
@@ -80,11 +81,28 @@ class UserValidator {
                         rank,
                     });
                 }
-                console.log(ranking, "here is the ranking");
                 const topThreeRanking = ranking.filter((details, id) => details.rank < 4);
                 return topThreeRanking;
             }
             catch (error) {
+            }
+        });
+    }
+    static changePassword(email, oldPassword, newPassWord) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const getUserOldPassword = yield db_1.pool.query("SELECT password FROM user_info WHERE email  = $1", [email]);
+                const checkIfPassworMatches = yield bcryptjs_1.default.compare(oldPassword, getUserOldPassword.rows[0].password);
+                console.log(checkIfPassworMatches);
+                if (!checkIfPassworMatches) {
+                    return new Error("Invalid old password");
+                }
+                const encryptedNewPassword = yield bcryptjs_1.default.hash(newPassWord, 10);
+                console.log(encryptedNewPassword);
+                const changePasswordOldPasswordWithNew = yield db_1.pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email]);
+            }
+            catch (error) {
+                return new Error(error.message);
             }
         });
     }

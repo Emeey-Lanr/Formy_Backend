@@ -2,6 +2,7 @@ import { Request, response } from "express"
 import jwt from "jsonwebtoken"
 import { pool } from "../db"
 import { jwtPayload, SubmitFormPayload, TopThree, Ranking } from "../Interface/jwt"
+import bcrypt from "bcryptjs"
 
 export class UserValidator {
     static async validateToken(req: Request) {
@@ -73,7 +74,7 @@ export class UserValidator {
              });
           
             }
-          console.log(ranking, "here is the ranking")
+ 
           const topThreeRanking = ranking.filter((details, id)=> details.rank < 4 )
             return topThreeRanking;
         } catch (error) {
@@ -81,5 +82,23 @@ export class UserValidator {
         }
        
         
+    }
+
+    static async changePassword(email:string, oldPassword:string, newPassWord:string) {
+        try {
+            const getUserOldPassword = await pool.query("SELECT password FROM user_info WHERE email  = $1", [email])
+            const checkIfPassworMatches = await bcrypt.compare(oldPassword, getUserOldPassword.rows[0].password)
+            console.log(checkIfPassworMatches)
+            if (!checkIfPassworMatches) {
+                return new Error("Invalid old password")
+            }
+           
+            const encryptedNewPassword = await bcrypt.hash(newPassWord, 10)
+            console.log(encryptedNewPassword)
+            const changePasswordOldPasswordWithNew = await pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email])
+        
+        } catch (error:any) {
+         return new Error(error.message)    
+        }
     }
 }

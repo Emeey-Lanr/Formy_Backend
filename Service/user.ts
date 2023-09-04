@@ -1,5 +1,12 @@
 import { pool } from "../db"
 import { UserValidator } from "../Validator/user"
+import {v2 as cloudinary} from 'cloudinary';
+          
+cloudinary.config({
+  cloud_name: `${process.env.CLOUDINARY_NAME}`,
+  api_key: `${process.env.CLOUDINARY_API_KEY}`,
+  api_secret: `${process.env.CLOUDINARY_API_SECRET}`,
+});
 export class UserService {
     static async getDashDetails(userEmail:string) {
         try {
@@ -16,6 +23,20 @@ export class UserService {
           
             return new Error(error.message)
         }
+    }
+    static async uploadProfileImgae(payload:{email:string, img:string}) {
+        const {email, img} = payload
+        try {
+             const uploadImg = await cloudinary.uploader.upload(img, { public_id: `${email}_formy` })
+            const updateUser = await pool.query(
+              "UPDATE user_info SET img_url = $1  WHERE email = $2 ",[`${uploadImg.secure_url}`, `${email}`]
+            );
+
+        } catch (error:any) {
+          return new Error(error.message)   
+        }
+       
+       
     }
 }
 

@@ -118,3 +118,29 @@ export const userAuthorization = async (req:Request, res:Response)=>{
     }
 
 }
+
+
+export const uploadUserProfileImg = async (req: Request, res: Response) => {
+    try {
+        const upload = await UserService.uploadProfileImgae(req.body)
+        if (upload instanceof Error) {
+             return errorResponse(res, 500, false, "An error occured");
+        }
+        return sucessResponse(res, 201, true, "Img profile uploaded succesfully");
+        
+    } catch (error) {
+           return errorResponse(res, 500, false, "internal server error");
+    }
+    
+} 
+export const changeUserPassword = async (req: Request, res: Response) => {
+    try {
+        const validatePassword = await UserValidator.changePassword(`${req.body.email}`, `${req.body.oldPassword}`, `${req.body.newPassword}`)
+        if (validatePassword instanceof Error) {
+            return errorResponse(res, 404, false, validatePassword.message)
+        }
+        return sucessResponse(res, 201, true, "password updated succesfully")
+    } catch (error) {
+        return errorResponse(res, 500, false, "internal server error")
+  }
+};
