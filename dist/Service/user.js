@@ -71,18 +71,20 @@ class UserService {
                     html: ` <div style="width:370px; height: 100%; margin:0 auto; position: fixed; top: 0; display: flex; justify-content: center; font-family: sans-serif;">
         <div style="width: 95%;">
              <h1 style="text-align: center; color: #2c3cec; ">Formy</h1>
-        <p style="font-size: 0.9rem; line-height: 30px; width: 80%; margin: 0  auto 10px auto; background: #fafafa;box-sizing: border-box; text-align: justify; padding: 30px 5px; border-radius: 5px;">
+        <p style="font-size: 0.9rem; line-height: 30px; width: 100%; margin: 0  auto 10px auto; background: #fafafa;box-sizing: border-box; text-align: justify; padding: 30px 10px; border-radius: 5px;">
           You've requested to reset your forgotten password,
           Click on the button below to rest password.
           <br>
           It expires in 4 hrs.
          </p>
          <div styele="width:300px; margin:0 auto;">
-          <button style="background:#2c3cec; border:none; width:100%; height:40px;">
-           <a href="http://localhost:3000/reset/${token}" style="font-size: 0.8rem;  text-decoration: none; width: 100%; text-align: center;">
-         Reset
-       </a>
+           <a href="http://localhost:3000/reset/${token}" style=" text-decoration: none; ">
+      
+          <button style="background:#2c3cec; text-align:center;font-size: 0.8rem;  border:none; width:100%; height:40px;color:white;">
+            Reset
+   
           </button>
+              </a>
          </div>
       
 

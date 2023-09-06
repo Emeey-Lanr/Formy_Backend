@@ -152,7 +152,7 @@ export const emailPasswordVerification = async (req:Request, res:Response)=>{
      if (email instanceof Error) {
           return errorResponse(res, 400, false, `${email.message}`);
      }
-      return sucessResponse(res, 201, true, `Check your inbox or spam to reset password`);
+      return sucessResponse(res, 201, true, `Email sent successfully. Check your inbox or spam to reset password`);
  } catch (error) {
            return errorResponse(res, 500, false, "An error occured");
  }

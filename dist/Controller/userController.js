@@ -153,7 +153,7 @@ const emailPasswordVerification = (req, res) => __awaiter(void 0, void 0, void 0
         if (email instanceof Error) {
             return (0, response_1.errorResponse)(res, 400, false, `${email.message}`);
         }
-        return (0, response_1.sucessResponse)(res, 201, true, `Check your inbox or spam to reset password`);
+        return (0, response_1.sucessResponse)(res, 201, true, `Email sent successfully. Check your inbox or spam to reset password`);
     }
     catch (error) {
         return (0, response_1.errorResponse)(res, 500, false, "An error occured");
