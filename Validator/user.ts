@@ -3,6 +3,27 @@ import jwt from "jsonwebtoken"
 import { pool } from "../db"
 import { jwtPayload, SubmitFormPayload, TopThree, Ranking } from "../Interface/jwt"
 import bcrypt from "bcryptjs"
+import { UserService } from "../Service/user"
+
+const emailVerificationF = async (email:string) => {
+    try {
+        
+     const checkIFEmailExist = await pool.query(
+       "SELECT email FROM user_info WHERE email = $1",
+       [email]
+    );
+   
+     if (checkIFEmailExist.rows[0].email !== email) {
+       return new Error("Invalid Email Address");
+    }
+    
+    return checkIFEmailExist.rows[0].email;
+    } catch (err) {
+        return new Error("An error occured")
+
+    }
+
+}
 
 export class UserValidator {
     static async validateToken(req: Request) {
@@ -88,17 +109,59 @@ export class UserValidator {
         try {
             const getUserOldPassword = await pool.query("SELECT password FROM user_info WHERE email  = $1", [email])
             const checkIfPassworMatches = await bcrypt.compare(oldPassword, getUserOldPassword.rows[0].password)
-            console.log(checkIfPassworMatches)
+           
             if (!checkIfPassworMatches) {
                 return new Error("Invalid old password")
             }
            
             const encryptedNewPassword = await bcrypt.hash(newPassWord, 10)
-            console.log(encryptedNewPassword)
+        
             const changePasswordOldPasswordWithNew = await pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email])
         
         } catch (error:any) {
          return new Error(error.message)    
         }
+    
+    }
+    static async emailVerification(email:string) {
+        try {
+            const verify = await emailVerificationF(email)
+            if (verify instanceof Error) {
+                return new Error(verify.message)
+            }
+            const sendEmail = await UserService.sendVerifactionMail(email)
+            if (sendEmail instanceof Error) {
+                 return new Error("An error occured, reload and try again")
+             }
+            
+        } catch (error) {
+            return new Error("An error occured")
+        }
+    }
+    static async emailTokenVerification(token: string) {
+        try {
+            const verifyToken = jwt.verify(`${token}`, `${process.env.EMAIL_JWT_TOKEN}`)
+            return verifyToken
+        } catch (error) {
+          return new Error("An error occured");   
+        }
+        
+    }
+    static async changePasswordEmailVerification(email: string, password:string) {
+        try {
+            const verifyEmail = await emailVerificationF(email)
+            if (verifyEmail instanceof Error) {
+                return new Error(verifyEmail.message)
+            }
+            const changePasword = await UserService.changePassword(email, password)
+            if (changePasword instanceof Error) {
+                return new Error(changePasword.message)
+            }
+            return changePasword
+        
+        } catch (error) {
+               return new Error("an error occured");
+        }
+        
     }
 }

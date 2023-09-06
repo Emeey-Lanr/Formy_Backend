@@ -13,7 +13,7 @@ export const getForm = async (req: Request, res: Response) => {
    
         errorResponse(res, Number(checkBefore.message.split("/")[1]), false, checkBefore.message.split("/")[0])
     } else {
-        console.log(checkBefore, "Lkjhgf")
+       
         sucessResponse(res, 200, true, "Valid Acesss Link", checkBefore)
     }
     
@@ -35,7 +35,7 @@ export const submitForm = async (req: Request, res: Response) => {
 
 export const deleteForm = async (req:Request, res:Response) => {
     try {
-        console.log(req.params.id)
+      
         const deleteForm = await pool.query("DELETE FROM register WHERE id = $1", [Number(req.params.id)])
         sucessResponse(res, 200, true, "Deleted Successfully")
     } catch (error:any) {

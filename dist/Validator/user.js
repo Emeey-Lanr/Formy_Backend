@@ -16,6 +16,19 @@ exports.UserValidator = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("../db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const user_1 = require("../Service/user");
+const emailVerificationF = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const checkIFEmailExist = yield db_1.pool.query("SELECT email FROM user_info WHERE email = $1", [email]);
+        if (checkIFEmailExist.rows[0].email !== email) {
+            return new Error("Invalid Email Address");
+        }
+        return checkIFEmailExist.rows[0].email;
+    }
+    catch (err) {
+        return new Error("An error occured");
+    }
+});
 class UserValidator {
     static validateToken(req) {
         var _a;
@@ -93,16 +106,60 @@ class UserValidator {
             try {
                 const getUserOldPassword = yield db_1.pool.query("SELECT password FROM user_info WHERE email  = $1", [email]);
                 const checkIfPassworMatches = yield bcryptjs_1.default.compare(oldPassword, getUserOldPassword.rows[0].password);
-                console.log(checkIfPassworMatches);
                 if (!checkIfPassworMatches) {
                     return new Error("Invalid old password");
                 }
                 const encryptedNewPassword = yield bcryptjs_1.default.hash(newPassWord, 10);
-                console.log(encryptedNewPassword);
                 const changePasswordOldPasswordWithNew = yield db_1.pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email]);
             }
             catch (error) {
                 return new Error(error.message);
+            }
+        });
+    }
+    static emailVerification(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const verify = yield emailVerificationF(email);
+                if (verify instanceof Error) {
+                    return new Error(verify.message);
+                }
+                const sendEmail = yield user_1.UserService.sendVerifactionMail(email);
+                if (sendEmail instanceof Error) {
+                    return new Error("An error occured, reload and try again");
+                }
+            }
+            catch (error) {
+                return new Error("An error occured");
+            }
+        });
+    }
+    static emailTokenVerification(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const verifyToken = jsonwebtoken_1.default.verify(`${token}`, `${process.env.EMAIL_JWT_TOKEN}`);
+                return verifyToken;
+            }
+            catch (error) {
+                return new Error("An error occured");
+            }
+        });
+    }
+    static changePasswordEmailVerification(email, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const verifyEmail = yield emailVerificationF(email);
+                if (verifyEmail instanceof Error) {
+                    return new Error(verifyEmail.message);
+                }
+                const changePasword = yield user_1.UserService.changePassword(email, password);
+                if (changePasword instanceof Error) {
+                    return new Error(changePasword.message);
+                }
+                return changePasword;
+            }
+            catch (error) {
+                return new Error("an error occured");
             }
         });
     }

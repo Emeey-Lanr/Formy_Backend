@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeUserPassword = exports.uploadUserProfileImg = exports.userAuthorization = exports.signinC = exports.signupC = void 0;
+exports.changeForgotPassword = exports.emailTokenVerification = exports.emailPasswordVerification = exports.changeUserPassword = exports.uploadUserProfileImg = exports.userAuthorization = exports.signinC = exports.signupC = void 0;
 const db_1 = require("../db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -20,25 +20,20 @@ const user_1 = require("../Validator/user");
 const response_1 = require("../Response/response");
 const user_2 = require("../Service/user");
 const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body);
     const { username, email, password, } = req.body;
     try {
         const check = yield db_1.pool.query("SELECT username, email FROM user_info WHERE username = $1 OR email =  $2", [username, email]);
-        console.log(check.rows);
         if (check.rows.length > 0) {
             let erroMessage = "";
             if (check.rows[0].username === username && check.rows[0].email === email) {
                 // checks if username and email have been used before \
-                console.log("yesnno");
                 erroMessage = "Email & Username already in use";
             }
             else if (check.rows[0].username === username && check.rows[0].email !== email) {
                 // check if only username has been used before
-                console.log("yes");
                 erroMessage = "Username already in use";
             }
             else if (check.rows[0].username !== username && check.rows[0].email === email) {
-                console.log("no");
                 // checks if only email has been used before
                 erroMessage = "Email already in use";
             }
@@ -47,7 +42,6 @@ const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         else {
             // if none has been used before we bcypt the password, save details and send a token
             const bcryptPassword = yield bcryptjs_1.default.hash(password, 10);
-            console.log(bcryptPassword);
             const addUser = yield db_1.pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""]);
             // number zero means we ahve both available
             const jwtToken = jsonwebtoken_1.default.sign({ emailUsername: ` ${username} ${email}`, number: 0 }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" });
@@ -55,7 +49,6 @@ const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }
     catch (error) {
-        console.log(error.message);
         res.status(500).send({ message: "An error occured", status: false });
     }
 });
@@ -154,3 +147,45 @@ const changeUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.changeUserPassword = changeUserPassword;
+const emailPasswordVerification = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const email = yield user_1.UserValidator.emailVerification(req.body.email);
+        if (email instanceof Error) {
+            return (0, response_1.errorResponse)(res, 400, false, `${email.message}`);
+        }
+        return (0, response_1.sucessResponse)(res, 201, true, `Check your inbox or spam to reset password`);
+    }
+    catch (error) {
+        return (0, response_1.errorResponse)(res, 500, false, "An error occured");
+    }
+});
+exports.emailPasswordVerification = emailPasswordVerification;
+const emailTokenVerification = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+        const verifyToken = yield user_1.UserValidator.emailTokenVerification(`${token}`);
+        if (verifyToken instanceof Error) {
+            return (0, response_1.errorResponse)(res, 400, false, `${verifyToken.message}`);
+        }
+        return (0, response_1.sucessResponse)(res, 201, true, `verification succesfull`, { verifyToken });
+    }
+    catch (error) {
+        return (0, response_1.sucessResponse)(res, 201, true, "password updated succesfully");
+    }
+});
+exports.emailTokenVerification = emailTokenVerification;
+const changeForgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, password } = req.body;
+    try {
+        const verify = yield user_1.UserValidator.changePasswordEmailVerification(email, password);
+        if (verify instanceof Error) {
+            return (0, response_1.errorResponse)(res, 400, false, `${verify.message}`);
+        }
+        return (0, response_1.sucessResponse)(res, 201, true, `Updated Succesfully`);
+    }
+    catch (error) {
+        return (0, response_1.errorResponse)(res, 500, false, "An error occured");
+    }
+});
+exports.changeForgotPassword = changeForgotPassword;

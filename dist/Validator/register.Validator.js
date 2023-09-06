@@ -48,7 +48,6 @@ const fillFormV = (link) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }
     catch (error) {
-        console.log(error);
         return new Error(`Internal Error/500`);
     }
 });
@@ -65,7 +64,6 @@ const submitFormV = (data) => __awaiter(void 0, void 0, void 0, function* () {
         return submit;
     }
     catch (error) {
-        console.log(error);
         return new Error(error.message);
     }
 });

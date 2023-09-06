@@ -6,26 +6,27 @@ import { jwtPayload } from "../Interface/jwt"
 import { UserValidator } from "../Validator/user"
 import { errorResponse, sucessResponse } from "../Response/response"
 import { UserService } from "../Service/user"
+import { emit } from "process"
 
 export const signupC = async(req: Request, res: Response) => {
-    console.log(req.body)
+   
     const {username, email, password,  } = req.body
     try {
         const check = await pool.query("SELECT username, email FROM user_info WHERE username = $1 OR email =  $2", [username, email])
-        console.log(check.rows)
+     
         if (check.rows.length > 0) {
             let erroMessage = ""
             if (check.rows[0].username === username && check.rows[0].email === email) {
                 // checks if username and email have been used before \
-                console.log("yesnno")
+              
                 erroMessage = "Email & Username already in use"
            
             } else if (check.rows[0].username === username && check.rows[0].email !== email) {
                 // check if only username has been used before
-                console.log("yes")
+               
                 erroMessage = "Username already in use"
             } else if (check.rows[0].username !== username && check.rows[0].email === email) {
-                console.log("no")
+               
                 // checks if only email has been used before
                 erroMessage = "Email already in use"
             }
@@ -33,7 +34,7 @@ export const signupC = async(req: Request, res: Response) => {
         } else {
             // if none has been used before we bcypt the password, save details and send a token
             const bcryptPassword = await bcryptjs.hash(password, 10)
-            console.log(bcryptPassword)
+           
             const addUser = await pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""])
             // number zero means we ahve both available
             const jwtToken = jwt.sign({ emailUsername:` ${ username } ${ email }`, number: 0 }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
@@ -41,7 +42,7 @@ export const signupC = async(req: Request, res: Response) => {
         }   
        
     } catch (error:any) {
-        console.log(error.message)
+   
         res.status(500).send({ message: "An error occured", status: false })
     }
     
@@ -144,3 +145,51 @@ export const changeUserPassword = async (req: Request, res: Response) => {
         return errorResponse(res, 500, false, "internal server error")
   }
 };
+export const emailPasswordVerification = async (req:Request, res:Response)=>{
+ try {
+   
+     const email = await UserValidator.emailVerification(req.body.email)
+     if (email instanceof Error) {
+          return errorResponse(res, 400, false, `${email.message}`);
+     }
+      return sucessResponse(res, 201, true, `Check your inbox or spam to reset password`);
+ } catch (error) {
+           return errorResponse(res, 500, false, "An error occured");
+ }
+
+    
+}
+
+export const emailTokenVerification = async (req: Request, res: Response) => {
+    try {
+
+        const token = req.headers.authorization?.split(" ")[1]
+
+        const verifyToken = await UserValidator.emailTokenVerification(
+          `${token}`
+        ); 
+        
+        if (verifyToken instanceof Error) {
+                      return errorResponse(res, 400, false, `${verifyToken.message}`);
+        }
+        
+         return sucessResponse(res, 201, true, `verification succesfull`, {verifyToken});
+    } catch (error) {
+           return sucessResponse(res, 201, true, "password updated succesfully")
+    }
+}
+
+export const changeForgotPassword = async (req: Request, res: Response) => {
+   const {email,password} = req.body
+    try {
+         const verify = await UserValidator.changePasswordEmailVerification(email, password)
+        if (verify instanceof Error) {
+            return errorResponse(res, 400, false, `${verify.message}`);
+            
+        }
+        return sucessResponse(res, 201, true, `Updated Succesfully`);
+        
+    } catch (error) {
+             return errorResponse(res, 500, false, "An error occured");   
+    }
+} 

@@ -47,7 +47,7 @@ export const fillFormV = async (link:string) => {
           
         
     } catch (error: any) {
-        console.log(error)
+       
         return new Error(`Internal Error/500`)
     }
         
@@ -64,7 +64,7 @@ export const submitFormV = async (data:SubmitFormPayload ) => {
         const submit = await pool.query("INSERT INTO register(form_title, form_description ,form_link , user_email , form_details , submit_details , owner_id) VALUES($1,$2,$3,$4,$5 , $6, $7)", submitDetails)
         return submit
     } catch (error: any) {
-        console.log(error)
+       
       return  new Error(error.message)   
     }
 }

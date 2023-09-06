@@ -36,7 +36,7 @@ export const getformValidator = async (req:Request) => {
                 searchRoute = "username"
         }
         const lookForUserQuery = await pool.query(`SELECT email FROM user_info WHERE ${searchRoute} = $1`, [searchId])
-        console.log(lookForUserQuery.rows)
+     
         const lookForUserForm = await pool.query("SELECT * FROM form WHERE userId = $1", [lookForUserQuery.rows[0].email])
 
         return lookForUserForm.rows

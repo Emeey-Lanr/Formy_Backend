@@ -6,7 +6,10 @@ import {
     signinC,
     userAuthorization,
     uploadUserProfileImg,
-    changeUserPassword
+    changeUserPassword,
+    emailPasswordVerification,
+    emailTokenVerification,
+    changeForgotPassword
 } from "../Controller/userController"
 
 userRoute.post("/signup", signupC)
@@ -14,6 +17,9 @@ userRoute.post("/signin", signinC)
 userRoute.get("/authorizeuser", userAuthorization)
 userRoute.put("/uploadProfileImg", uploadUserProfileImg)
 userRoute.put("/changepassword", changeUserPassword)
+userRoute.post("/emailVerification", emailPasswordVerification)
+userRoute.get("/emailTokenVerification", emailTokenVerification)
+userRoute.put("/changeForgotPassword", changeForgotPassword)
 
 
 

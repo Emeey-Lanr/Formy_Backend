@@ -22,7 +22,6 @@ const getForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         (0, response_2.errorResponse)(res, Number(checkBefore.message.split("/")[1]), false, checkBefore.message.split("/")[0]);
     }
     else {
-        console.log(checkBefore, "Lkjhgf");
         (0, response_1.sucessResponse)(res, 200, true, "Valid Acesss Link", checkBefore);
     }
 });
@@ -40,7 +39,6 @@ const submitForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.submitForm = submitForm;
 const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log(req.params.id);
         const deleteForm = yield db_1.pool.query("DELETE FROM register WHERE id = $1", [Number(req.params.id)]);
         (0, response_1.sucessResponse)(res, 200, true, "Deleted Successfully");
     }
