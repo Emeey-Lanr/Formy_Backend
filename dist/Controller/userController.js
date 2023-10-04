@@ -49,6 +49,7 @@ const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }
     catch (error) {
+        console.log(error.message);
         res.status(500).send({ message: "An error occured", status: false });
     }
 });

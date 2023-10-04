@@ -42,7 +42,7 @@ export const signupC = async(req: Request, res: Response) => {
         }   
        
     } catch (error:any) {
-   
+        console.log(error.message)
         res.status(500).send({ message: "An error occured", status: false })
     }
     

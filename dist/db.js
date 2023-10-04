@@ -14,4 +14,8 @@ exports.pool = new pg({
     host: `${process.env.DB_HOST}`,
     port: Number(process.env.DB_PORT),
     database: `${process.env.DB_CONNECTED_DB}`,
+    connectionString: `${process.env.DB_CONNECTION_LINK}`,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
