@@ -45,7 +45,7 @@ class UserService {
             const { email, img } = payload;
             try {
                 const uploadImg = yield cloudinary_1.v2.uploader.upload(img, { public_id: `${email}_formy` });
-                const updateUser = yield db_1.pool.query("UPDATE user_info SET img_url = $1  WHERE email = $2 ", [`${uploadImg.secure_url}`, `${email}`]);
+                const updateUser = yield db_1.pool.query("UPDATE formy_user_info SET img_url = $1  WHERE email = $2 ", [`${uploadImg.secure_url}`, `${email}`]);
             }
             catch (error) {
                 return new Error(error.message);
@@ -105,7 +105,7 @@ class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const hash_password = yield bcryptjs_1.default.hash(`${password}`, 10);
-                const updatePassword = yield db_1.pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [hash_password, email]);
+                const updatePassword = yield db_1.pool.query("UPDATE formy_user_info SET password = $1 WHERE email = $2", [hash_password, email]);
                 let message = "Updated succesfully";
                 return message;
             }

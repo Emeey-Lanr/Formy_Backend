@@ -49,7 +49,7 @@ const getformValidator = (req) => __awaiter(void 0, void 0, void 0, function* ()
             searchId = verifyToken.emailUsername;
             searchRoute = "username";
         }
-        const lookForUserQuery = yield db_1.pool.query(`SELECT email FROM user_info WHERE ${searchRoute} = $1`, [searchId]);
+        const lookForUserQuery = yield db_1.pool.query(`SELECT email FROM formy_user_info WHERE ${searchRoute} = $1`, [searchId]);
         const lookForUserForm = yield db_1.pool.query("SELECT * FROM form WHERE userId = $1", [lookForUserQuery.rows[0].email]);
         return lookForUserForm.rows;
     }

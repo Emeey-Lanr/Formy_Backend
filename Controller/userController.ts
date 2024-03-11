@@ -12,7 +12,7 @@ export const signupC = async(req: Request, res: Response) => {
    
     const {username, email, password,  } = req.body
     try {
-        const check = await pool.query("SELECT username, email FROM user_info WHERE username = $1 OR email =  $2", [username, email])
+        const check = await pool.query("SELECT username, email FROM formy_user_info WHERE username = $1 OR email =  $2", [username, email])
      
         if (check.rows.length > 0) {
             let erroMessage = ""
@@ -35,7 +35,7 @@ export const signupC = async(req: Request, res: Response) => {
             // if none has been used before we bcypt the password, save details and send a token
             const bcryptPassword = await bcryptjs.hash(password, 10)
            
-            const addUser = await pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""])
+            const addUser = await pool.query("INSERT INTO formy_user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""])
             // number zero means we ahve both available
             const jwtToken = jwt.sign({ emailUsername:` ${ username } ${ email }`, number: 0 }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" })
             res.status(200).send({userToken:jwtToken, status:true})
@@ -62,7 +62,7 @@ export const signinC = async (req: Request, res: Response) => {
             searchName = "username"
             number = 2
         }
-        const searchQuery = await pool.query(`SELECT username, email, password FROM user_info WHERE ${searchName} = $1`, [emailUsername])
+        const searchQuery = await pool.query(`SELECT username, email, password FROM formy_user_info WHERE ${searchName} = $1`, [emailUsername])
         const ifValid = () => {
             // number 1 means we only have email available, 2 means we only have username
             const jwtToken = jwt.sign({ emailUsername:emailUsername, number:  number}, `${process.env.JWTTOKEN}`, { expiresIn: "1d" })

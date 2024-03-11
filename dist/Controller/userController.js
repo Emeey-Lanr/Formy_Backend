@@ -22,7 +22,7 @@ const user_2 = require("../Service/user");
 const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, email, password, } = req.body;
     try {
-        const check = yield db_1.pool.query("SELECT username, email FROM user_info WHERE username = $1 OR email =  $2", [username, email]);
+        const check = yield db_1.pool.query("SELECT username, email FROM formy_user_info WHERE username = $1 OR email =  $2", [username, email]);
         if (check.rows.length > 0) {
             let erroMessage = "";
             if (check.rows[0].username === username && check.rows[0].email === email) {
@@ -42,7 +42,7 @@ const signupC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         else {
             // if none has been used before we bcypt the password, save details and send a token
             const bcryptPassword = yield bcryptjs_1.default.hash(password, 10);
-            const addUser = yield db_1.pool.query("INSERT INTO user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""]);
+            const addUser = yield db_1.pool.query("INSERT INTO formy_user_info(username, email, password, img_url) VALUES($1,$2,$3,$4)", [username, email, bcryptPassword, ""]);
             // number zero means we ahve both available
             const jwtToken = jsonwebtoken_1.default.sign({ emailUsername: ` ${username} ${email}`, number: 0 }, `${process.env.JWTTOKEN}`, { expiresIn: "7d" });
             res.status(200).send({ userToken: jwtToken, status: true });
@@ -67,7 +67,7 @@ const signinC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             searchName = "username";
             number = 2;
         }
-        const searchQuery = yield db_1.pool.query(`SELECT username, email, password FROM user_info WHERE ${searchName} = $1`, [emailUsername]);
+        const searchQuery = yield db_1.pool.query(`SELECT username, email, password FROM formy_user_info WHERE ${searchName} = $1`, [emailUsername]);
         const ifValid = () => {
             // number 1 means we only have email available, 2 means we only have username
             const jwtToken = jsonwebtoken_1.default.sign({ emailUsername: emailUsername, number: number }, `${process.env.JWTTOKEN}`, { expiresIn: "1d" });

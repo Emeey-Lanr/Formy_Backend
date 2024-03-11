@@ -9,7 +9,7 @@ const emailVerificationF = async (email:string) => {
     try {
         
      const checkIFEmailExist = await pool.query(
-       "SELECT email FROM user_info WHERE email = $1",
+       "SELECT email FROM formy_user_info WHERE email = $1",
        [email]
     );
    
@@ -51,7 +51,7 @@ export class UserValidator {
                     searchRoute = "username"
                 }
 
-                const userDetails = await pool.query(`SELECT username, email, img_url FROM user_info WHERE ${searchRoute} = $1`, [searchId])
+                const userDetails = await pool.query(`SELECT username, email, img_url FROM formy_user_info WHERE ${searchRoute} = $1`, [searchId])
                 return userDetails.rows[0]
             }
            } catch (error:any ) {
@@ -107,7 +107,7 @@ export class UserValidator {
 
     static async changePassword(email:string, oldPassword:string, newPassWord:string) {
         try {
-            const getUserOldPassword = await pool.query("SELECT password FROM user_info WHERE email  = $1", [email])
+            const getUserOldPassword = await pool.query("SELECT password FROM formy_user_info WHERE email  = $1", [email])
             const checkIfPassworMatches = await bcrypt.compare(oldPassword, getUserOldPassword.rows[0].password)
            
             if (!checkIfPassworMatches) {
@@ -116,7 +116,7 @@ export class UserValidator {
            
             const encryptedNewPassword = await bcrypt.hash(newPassWord, 10)
         
-            const changePasswordOldPasswordWithNew = await pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email])
+            const changePasswordOldPasswordWithNew = await pool.query("UPDATE formy_user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email])
         
         } catch (error:any) {
          return new Error(error.message)    

@@ -19,7 +19,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_1 = require("../Service/user");
 const emailVerificationF = (email) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const checkIFEmailExist = yield db_1.pool.query("SELECT email FROM user_info WHERE email = $1", [email]);
+        const checkIFEmailExist = yield db_1.pool.query("SELECT email FROM formy_user_info WHERE email = $1", [email]);
         if (checkIFEmailExist.rows[0].email !== email) {
             return new Error("Invalid Email Address");
         }
@@ -54,7 +54,7 @@ class UserValidator {
                         searchId = verifyToken.emailUsername;
                         searchRoute = "username";
                     }
-                    const userDetails = yield db_1.pool.query(`SELECT username, email, img_url FROM user_info WHERE ${searchRoute} = $1`, [searchId]);
+                    const userDetails = yield db_1.pool.query(`SELECT username, email, img_url FROM formy_user_info WHERE ${searchRoute} = $1`, [searchId]);
                     return userDetails.rows[0];
                 }
             }
@@ -104,13 +104,13 @@ class UserValidator {
     static changePassword(email, oldPassword, newPassWord) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const getUserOldPassword = yield db_1.pool.query("SELECT password FROM user_info WHERE email  = $1", [email]);
+                const getUserOldPassword = yield db_1.pool.query("SELECT password FROM formy_user_info WHERE email  = $1", [email]);
                 const checkIfPassworMatches = yield bcryptjs_1.default.compare(oldPassword, getUserOldPassword.rows[0].password);
                 if (!checkIfPassworMatches) {
                     return new Error("Invalid old password");
                 }
                 const encryptedNewPassword = yield bcryptjs_1.default.hash(newPassWord, 10);
-                const changePasswordOldPasswordWithNew = yield db_1.pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email]);
+                const changePasswordOldPasswordWithNew = yield db_1.pool.query("UPDATE formy_user_info SET password = $1 WHERE email = $2", [encryptedNewPassword, email]);
             }
             catch (error) {
                 return new Error(error.message);

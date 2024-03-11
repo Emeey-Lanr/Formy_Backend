@@ -33,7 +33,7 @@ export class UserService {
         try {
              const uploadImg = await cloudinary.uploader.upload(img, { public_id: `${email}_formy` })
             const updateUser = await pool.query(
-              "UPDATE user_info SET img_url = $1  WHERE email = $2 ",[`${uploadImg.secure_url}`, `${email}`]
+              "UPDATE formy_user_info SET img_url = $1  WHERE email = $2 ",[`${uploadImg.secure_url}`, `${email}`]
             );
 
         } catch (error:any) {
@@ -94,7 +94,7 @@ export class UserService {
     try {
       const hash_password = await bcrypt.hash(`${password}`, 10)
      
-      const updatePassword = await pool.query("UPDATE user_info SET password = $1 WHERE email = $2", [hash_password, email])
+      const updatePassword = await pool.query("UPDATE formy_user_info SET password = $1 WHERE email = $2", [hash_password, email])
       let message = "Updated succesfully"
       return message
     } catch (error) {
